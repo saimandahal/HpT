@@ -48,10 +48,7 @@ weather_testing_input,weather_testing_output=weather_dataLoader.getTestingData()
 
 w_training_input , w_training_output = weather_dataLoader.getTrainingData()
 
-print(len(w_training_input))
-print(len(weather_testing_input))
 
-# quit(0)
 class PositionalEncoding(nn.Module):
 
     def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
@@ -423,9 +420,6 @@ def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iteration
         total_batches+=1
         total_iterations+=1
 
-        # check_conditions_flag = False
-
-
         batch_size , sequence_length , feature_dim = train_outputs[input_index].shape  
 
         if implement_main:  
@@ -708,4 +702,4 @@ def getDFForOutputs(predicted_output, actual_outputs, csv_paths):
 
 
 test_1_actual_df = getDFForOutputs(test_outputs_1_w,test_outputs_actual_1_w, csv_path)
-test_1_actual_df.to_csv('/results/layers/test_Layers.csv')
+test_1_actual_df.to_csv('/results/test_Layers.csv')
