@@ -4,7 +4,7 @@ Saiman Dahal, Krishu Kumar Thapa, Pratyush Dhingra , Partha Pande, Ananth Kalyan
 #
 Washignton State University, Pullman -->
 
-SpaceTxAx is a hardware- software-based codesign that implements lightweight training for self-attention mechanisms on various spatiotemporal datasets and
+A hardware- software-based codesign that implements lightweight training for self-attention mechanisms on various spatiotemporal datasets and
 accelerates it using heterogeneous architecture. Our parameter-efficient training approach incorporates intrinsic dimensionality
 to reduce the trainable parameters, achieving efficiency in training without significant loss in accuracy. 
 
