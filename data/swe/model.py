@@ -323,10 +323,9 @@ def check_conditions_weight(previous_weight_1, total_iterations , previous_param
         if name == v_name:
             all_v = torch.clone(param.data)
 
-    merged_qkv_weight = torch.cat((all_q, all_v), dim=1)
+    merged_qv_weight = torch.cat((all_q, all_v), dim=1)
 
-    # if (current_k is not None) and (current_v is not None) and (current_q is not None):
-    current_params = merged_qkv_weight
+    current_params = merged_qv_weight
 
     if previous_params is not None:
         distance_qkv = torch.norm(current_params - previous_params , p='fro')
@@ -350,6 +349,7 @@ def check_conditions_weight(previous_weight_1, total_iterations , previous_param
     return flag_weight , previous_params , previous_weight_1
 
 def t_test_check(loss_stat_full, loss_stat_lora):
+
     t_statistic, p_value = stats.ttest_ind(loss_stat_full, loss_stat_lora)
     alpha = 0.01
 
@@ -631,12 +631,6 @@ loss_df1 = pd.DataFrame()
 loss_df1['Train Loss'] =pd.Series(main_loss)
 loss_df1['Lora Loss'] =pd.Series(lora_loss)
 
-
-
-loss_df1['time'] =pd.Series(time1)
-
-loss_df1.to_csv('/results/Train_Hybrid12.csv', index= False)
-
 peft_model.eval()
 
 
@@ -721,4 +715,4 @@ csv_paths = [
     ]
 
 merged_df = merge_csv_files(csv_paths)
-merged_df.to_csv('/results/test_Hybrid12_combined.csv')
+merged_df.to_csv('/results/test_combined.csv')
