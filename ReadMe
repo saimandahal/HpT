@@ -1,9 +1,4 @@
-Basic Node.js Application
-Description
-This is a basic Node.js application that demonstrates a simple server setup.
-
-Table of Contents
-<b>SpaceTxAx: Hybrid Acceleration of Lower-Parameter Spatio-Temporal Attention Models</b>
+#SpaceTxAx: Hybrid Acceleration of Lower-Parameter Spatio-Temporal Attention Models
 
 Transformer architecture has emerged as a prominent deep neural network and is widely applied in several sequence transduction tasks. With attention mechanisms at their center, transformers have demonstrated excellent performance in large
 language models (LLMs). In addition to their success with LLMs, attention mechanisms are effectively applied in spatio-temporal
