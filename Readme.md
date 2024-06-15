@@ -11,4 +11,3 @@ to reduce the trainable parameters, achieving efficiency in training without sig
 #
 Original code for SWE prediction can be found on : https://github.com/Krishuthapa/SWE-Attention
 
-For citation:
