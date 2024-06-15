@@ -31,6 +31,7 @@ device = torch.device(dev)
 # File import
 folder_path = '/data/'
 
+
 files = os.listdir(folder_path)
 csv_files = [file for file in files if file.endswith('.csv')]
 
@@ -40,14 +41,10 @@ weather_dataLoader = DL.WeatherLoader(csv_path)
 
 weather_dataLoader.cleanData()
 
-weather_testing_input,weather_testing_output=weather_dataLoader.getTestingData()
+w_testing_input,w_testing_output=weather_dataLoader.getTestingData()
 
 w_training_input , w_training_output = weather_dataLoader.getTrainingData()
 
-print(len(w_training_input))
-print(len(weather_testing_input))
-
-# quit(0)
 class PositionalEncoding(nn.Module):
 
     def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
@@ -285,111 +282,56 @@ optimizer_weather = torch.optim.AdamW(weather_model.parameters(), lr= 0.0001, we
 scheduler_weather = torch.optim.lr_scheduler.StepLR(optimizer_weather, step_size = 3 ,gamma = 0.6, last_epoch= -1, verbose=False)
 
 
-
 # Implementation Main
 
-
-def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iterations,  implement_main, weather_model_1 , loss_all ):
+def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iterations):
 
     total_loss = 0
-    net_loss = 0
     total_batches = 0
     average_loss = 0
-    
-    loss_in_batch_1 = 0
-
-    total_batches_lora =0
-    total_batches_main =0
-
-    count = 0
-
-    flag_loss = False
-    flag_weight = False
 
     x= len(train_inputs)
 
-    check_iterations_loss= 8000
-    check_iterations_weight= 8000
-
-    loss_stat_full = []
-    loss_stat_lora = []
-                    
     lossMain = 0
-    lossLora = 0
-
-    stop_flag = False
-    end_time = time.time()
-
 
     for input_index , batch_input in enumerate(train_inputs):
                 
         total_batches+=1
         total_iterations+=1
 
-        # check_conditions_flag = False
-
-
         batch_size , sequence_length , feature_dim = train_outputs[input_index].shape  
 
-        if implement_main:  
-            total_batches_main +=1
+        optimizer_weather.zero_grad()
+            
+        output = weather_model(batch_input)
+            
+        loss = mean_squared_error_weather(output, torch.from_numpy(train_outputs[input_index]).to(dtype=torch.float32,device=device))
 
-            optimizer_weather.zero_grad()
-                
-            output = weather_model(batch_input)
-                
-            loss = mean_squared_error_weather(output, torch.from_numpy(train_outputs[input_index]).to(dtype=torch.float32,device=device))
+        loss_in_batch = loss.item() * batch_input.shape[0]
+            
+        total_loss+=loss_in_batch
 
-            loss_in_batch = loss.item() * batch_input.shape[0]
-                
-            total_loss+=loss_in_batch
+        loss.backward()
 
-            loss.backward()
+        optimizer_weather.step()
 
-            optimizer_weather.step()
+    lossMain = total_loss / total_batches
+    print("Average Training Loss:", lossMain)
 
-            loss_all.append(loss_in_batch)
-        
-        # Loss lists
-        if implement_lora and implement_main : 
-            main_list.append(loss_in_batch) 
-
-        elif implement_lora and not implement_main:
-            main_list.append(0)
-
-        elif implement_main and not implement_lora:
-            main_list.append(loss_in_batch)
-             
-    if total_batches_main != 0:
-
-        lossMain = total_loss / total_batches_main
-        print("Main Training Loss:", lossMain)
-
-    return lossMain, lossLora, total_iterations,  check_conditions_flag, implement_main, implement_lora,for_once, peft_model, loss_all,optimizer_weather_1, t_test, end_time, stop_flag
+    return total_iterations
  
-# flag
-
 # Initialization
 total_iterations=0
-loss_all = []
-
-loss_main=[]
-
-previous_params = None
-
-main_list = []
-
-# Hybrid Parameters
 
 # Training Section
 weather_model.train(True)
+
 start_time = time.time()
 
 status = True
 
 index = 0
 
-main_loss = []
 while status:
 
     temp_holder_weather = list(zip(w_training_input, w_training_output))
@@ -399,20 +341,13 @@ while status:
        
     train_input_batches_w, train_output_batches_w = zip(*temp_holder_weather)
 
-    main1,lora1, total_iterations , check_conditions_flag, implement_main, implement_lora, for_once, peft_model , loss_all, optimizer_weather_1, t_test,end_time, stop_flag= TrainModelWeather(train_input_batches_w, train_output_batches_w,epoch_number , total_iterations,
-                            implement_main , for_once,peft_model, loss_all ,optimizer_weather_1 , previous_params )
+    total_iterations= TrainModelWeather(train_input_batches_w, train_output_batches_w,epoch_number , total_iterations)
     scheduler_weather.step()
 
     index = index + 1
 
     if index > 19:
         status = False
-
-    main_loss.append(main1)
-
-    status_loss = False
-    status_validation = False
-    
 
 end_time = time.time()
 print("Time Elapsed", end_time - start_time)
@@ -450,7 +385,7 @@ def TestModelWeather(test_inputs, test_outputs):
     return (np.array(outputs), np.array(actual_outputs), np.array(outputs_loss))
 
 
-test_outputs_1_w, test_outputs_actual_1_w, test_losses_1_w = TestModelWeather(weather_testing_input,weather_testing_output)
+test_outputs_1_w, test_outputs_actual_1_w, test_losses_1_w = TestModelWeather(w_testing_input,w_testing_output)
 
 def getDFForOutputs(predicted_output, actual_outputs, csv_paths):
     actual_outputs_df = pd.DataFrame()
@@ -471,4 +406,4 @@ def getDFForOutputs(predicted_output, actual_outputs, csv_paths):
 
 
 test_1_actual_df = getDFForOutputs(test_outputs_1_w,test_outputs_actual_1_w, csv_path)
-test_1_actual_df.to_csv('/results/layers/test_Layers.csv')
+test_1_actual_df.to_csv('/results/test_Layers.csv')
