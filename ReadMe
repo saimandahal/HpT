@@ -1,6 +1,6 @@
-SpaceTxAx: Hybrid Acceleration of Lower-Parameter Spatio-Temporal Attention Models
+<b>SpaceTxAx: Hybrid Acceleration of Lower-Parameter Spatio-Temporal Attention Models</b>
 
-ransformer architecture has emerged as a prominent deep neural network and is widely applied in several sequence transduction tasks. With attention mechanisms at their center, transformers have demonstrated excellent performance in large
+Transformer architecture has emerged as a prominent deep neural network and is widely applied in several sequence transduction tasks. With attention mechanisms at their center, transformers have demonstrated excellent performance in large
 language models (LLMs). In addition to their success with LLMs, attention mechanisms are effectively applied in spatio-temporal
 analysis. However, their application is often constrained as they are highly complex and require bulk computation resources.
 While numerous efforts have been made to mitigate the complexity and memory footprints, particularly for inference tasks,
