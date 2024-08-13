@@ -9,5 +9,4 @@ accelerates it using heterogeneous architecture. Our parameter-efficient trainin
 to reduce the trainable parameters, achieving efficiency in training without significant loss in accuracy. 
 
 #
-Original code for SWE prediction can be found on : https://github.com/Krishuthapa/SWE-Attention
 
