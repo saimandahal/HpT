@@ -2,6 +2,7 @@ import torch
 
 from torch.utils.data import DataLoader, Dataset
 
+# Train data
 class TimeSeriesDataset(Dataset):
 
     def __init__(self, data, seq_length):
@@ -24,6 +25,7 @@ class TimeSeriesDataset(Dataset):
         return torch.tensor(x, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
 
 
+# Test data
 class TimeSeriesTestDataset(Dataset):
 
     def __init__(self, data, seq_length):
