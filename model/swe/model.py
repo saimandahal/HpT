@@ -2,7 +2,6 @@
 import torch
 import torch.nn as nn
 
-
 import random
 import torch.nn.functional as F
 
@@ -22,6 +21,7 @@ from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_int8_t
 
 import SDL as SDL
 
+# GPU
 if torch.cuda.is_available(): 
     dev = "cuda:0" 
 else: 
@@ -29,16 +29,20 @@ else:
 
 device = torch.device(dev)
 
+# Prediction location
 snotel_locations_info = pd.read_csv('Data/Snotel_Locations_Filtered_v3.csv')
 snotel_locations_info['Southness'] = [ math.sin(value['Slope_tif1_x']) * math.cos(value['Aspect_tif_x']) for index,value in snotel_locations_info.iterrows()]
 
-
+# Dataloader
 sp_dataLoader = SDL.SpatialDataLoader()
 
 sp_dataLoader.cleanDataJunk()
 sp_dataLoader.prepareInputsAndOutputs()
 
+# Training Data
 sp_training_input , sp_training_output = sp_dataLoader.getTrainingData()
+
+# Testing data
 sp_testing_data_1,sp_testing_data_2, sp_testing_data_3 , sp_testing_data_4,sp_testing_data_5 = sp_dataLoader.getTestingData()
 
 sp_testing_input_1 ,sp_testing_output_1 = sp_testing_data_1
@@ -47,6 +51,7 @@ sp_testing_input_3 ,sp_testing_output_3 = sp_testing_data_3
 sp_testing_input_4 ,sp_testing_output_4 = sp_testing_data_4
 sp_testing_input_5 ,sp_testing_output_5 = sp_testing_data_5
 
+# Positional Encoding
 class PositionalEncoding(nn.Module):
 
     def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
@@ -77,10 +82,15 @@ class PositionalEncoding(nn.Module):
 class TransformerLayer(nn.Module):
    def __init__(self, model_dim, n_heads):
         super(TransformerLayer, self).__init__()
+
         self.multihead_attn = MultiHeadAttention(model_dim, n_heads)
+
         self.feed_forward = FeedForward(model_dim, model_dim * 4)
+
         self.layer_norm1 = nn.LayerNorm(model_dim)
+
         self.layer_norm2 = nn.LayerNorm(model_dim)
+
         self.dropout = nn.Dropout(0.1)
    def forward(self, x):
         # Multi-head attention
@@ -93,29 +103,42 @@ class TransformerLayer(nn.Module):
         return x
 
 class FeedForward(nn.Module):
+
     def __init__(self, model_dim, ff_dim):
         super(FeedForward, self).__init__()
+
         self.fc1 = nn.Linear(model_dim, ff_dim)
+
         self.fc2 = nn.Linear(ff_dim, model_dim)
 
     def forward(self, x):
+
         x = F.relu(self.fc1(x))
+
         x = self.fc2(x)
         return x
 
 class MultiHeadAttention(nn.Module):
+
     def __init__(self, model_dim, n_heads):
+
         super(MultiHeadAttention, self).__init__()
+
         self.model_dim = model_dim
+
         self.n_heads = n_heads
         self.head_dim = model_dim // n_heads
+
         assert self.head_dim * n_heads == model_dim, "Model"
+
         self.q_linear = nn.Linear(model_dim, model_dim)
         self.v_linear = nn.Linear(model_dim, model_dim)
         self.k_linear = nn.Linear(model_dim, model_dim)
+
         self.out = nn.Linear(model_dim, model_dim)
 
     def forward(self, query, key, value):
+
         batch_size = query.size(0)
         # Linear projections
         query = self.q_linear(query)
@@ -175,6 +198,7 @@ class SWETransformer(nn.Module):
         # Final output layer for the model.
         
         self.decoder_layer_1 = torch.nn.Linear(self.seq_length * int(self.model_dim/32) ,self.seq_length * int(self.model_dim/128)  )    
+
         self.decoder_layer_2 = torch.nn.Linear(self.seq_length * int(self.model_dim/128), self.seq_length)
         
         # Activation Functions
@@ -228,7 +252,7 @@ class SWETransformer(nn.Module):
         
         x = torch.cat((x , embed_input_x),1)
         
-        # Dim reduction layer.
+        # Dimension reduction layer.
         
         x = self.dim_red_1(x) 
         x= self.dropout_20(x)
@@ -259,7 +283,7 @@ class SWETransformer(nn.Module):
 
         return x
     
-
+# Model
 swe_model_sp = SWETransformer(encoder_input_dim = 19, model_dim = 512, n_output_heads = 1, seq_length = 323)
 swe_model_sp_1 = SWETransformer(encoder_input_dim = 19, model_dim = 512, n_output_heads = 1, seq_length = 323)
 
@@ -278,7 +302,7 @@ scheduler_sp_1 = torch.optim.lr_scheduler.StepLR(optimizer_sp_1, step_size = 3 ,
 
 
 # Implementation Main
-
+# Initial convergence test
 def check_conditions_loss(previous_average, average_loss, total_iterations  , flag_loss):
     # print("Chekcing loss and weight")
     if previous_average[0] is not None and previous_average[1] is not None:
@@ -311,15 +335,13 @@ def check_conditions_weight(previous_weight_1, total_iterations , previous_param
 
     q_name = f'transformer_layers.11.multihead_attn.q_linear.weight'
 
-    # k_name = f'transformer_layers.11.multihead_attn.k_linear.weight'
     v_name = f'transformer_layers.11.multihead_attn.v_linear.weight'
 
         # Iterate through parameters
     for name, param in swe_model_sp.named_parameters():
         if name == q_name:
             all_q = torch.clone(param.data)
-        # if name == k_name:
-        #     all_k.append(torch.clone(param.data))
+
         if name == v_name:
             all_v = torch.clone(param.data)
 
@@ -329,8 +351,6 @@ def check_conditions_weight(previous_weight_1, total_iterations , previous_param
 
     if previous_params is not None:
         distance_qkv = torch.norm(current_params - previous_params , p='fro')
-        # distance_qkv.item()
-        print(distance_qkv.item())
 
         if previous_weight_1[0] is not None and previous_weight_1[1] is not None:
             condition1 = previous_weight_1[0] - previous_weight_1[1]
@@ -343,11 +363,13 @@ def check_conditions_weight(previous_weight_1, total_iterations , previous_param
         # Update weights
         previous_weight_1[0] = previous_weight_1[1]
         previous_weight_1[1] = distance_qkv.item()
+
     previous_params = current_params
     
 
     return flag_weight , previous_params , previous_weight_1
 
+# T-test
 def t_test_check(loss_stat_full, loss_stat_lora):
 
     t_statistic, p_value = stats.ttest_ind(loss_stat_full, loss_stat_lora)
@@ -364,6 +386,7 @@ def t_test_check(loss_stat_full, loss_stat_lora):
         # print("There is a significant difference.")
         return False
 
+# Training
 def TrainModelSP(train_inputs, train_outputs, epoch_number, total_iterations,  implement_main, implement_lora 
                   , check_conditions_flag , t_test, swe_model_sp_1 , for_once , peft_model , loss_all , optimizer_sp_1 , previous_params,previous_average,previous_weight_1 ):
 
@@ -462,10 +485,15 @@ def TrainModelSP(train_inputs, train_outputs, epoch_number, total_iterations,  i
 
         if check_conditions_flag:
             average_loss+= loss_in_batch
+          
             if total_batches % check_iterations_loss == 0:
+          
                 print("Checking Conditions:")
+          
                 average_loss /= check_iterations_loss
+          
                 flag_loss,previous_average = check_conditions_loss(previous_average, average_loss, total_iterations , flag_loss )
+          
                 average_loss = 0
 
             if total_batches % check_iterations_weight == 0:
@@ -473,9 +501,13 @@ def TrainModelSP(train_inputs, train_outputs, epoch_number, total_iterations,  i
                 flag_weight,previous_params,previous_weight_1= check_conditions_weight(previous_weight_1,total_iterations, previous_params,flag_weight )
 
         if flag_loss and flag_weight:
+          
             print(f"Satisfied condition 1 at iteration {total_iterations}")
+          
             check_conditions_flag = False
+          
             flag_loss = False
+          
             t_test = True
 
         else:
