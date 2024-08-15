@@ -11,7 +11,8 @@ layers: at the software layer, our approach dynamically switches from a full-par
 
 
 ## Citation
-Paper under review
+
+Submitted for review
 
 Dahal, S., Dhingra, P., Thapa, KK., Pande, P. & Kalyanaraman, A. HpT: Hybrid Acceleration of Spatio-Temporal Attention Model Training on Heterogeneous Manycore Architecture (2024)
 
