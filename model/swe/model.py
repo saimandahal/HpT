@@ -301,7 +301,7 @@ optimizer_sp_1 = torch.optim.AdamW(swe_model_sp_1.parameters(), lr= 0.0001, weig
 scheduler_sp_1 = torch.optim.lr_scheduler.StepLR(optimizer_sp_1, step_size = 3 ,gamma = 0.6, last_epoch= -1, verbose=False)
 
 
-# Implementation Main
+# Implementation Full
 # Initial convergence test
 def check_conditions_loss(previous_average, average_loss, total_iterations  , flag_loss):
     # print("Chekcing loss and weight")
@@ -387,7 +387,7 @@ def t_test_check(loss_stat_full, loss_stat_lora):
         return False
 
 # Training
-def TrainModelSP(train_inputs, train_outputs, epoch_number, total_iterations,  implement_main, implement_lora 
+def TrainModelSP(train_inputs, train_outputs, epoch_number, total_iterations,  implement_full, implement_lora 
                   , check_conditions_flag , t_test, swe_model_sp_1 , for_once , peft_model , loss_all , optimizer_sp_1 , previous_params,previous_average,previous_weight_1 ):
 
     total_loss = 0
@@ -398,7 +398,7 @@ def TrainModelSP(train_inputs, train_outputs, epoch_number, total_iterations,  i
     loss_in_batch_1 = 0
 
     total_batches_lora =0
-    total_batches_main =0
+    total_batches_full =0
 
     count = 0
 
@@ -426,8 +426,8 @@ def TrainModelSP(train_inputs, train_outputs, epoch_number, total_iterations,  i
 
         batch_size , sequence_length , feature_dim = train_outputs[input_index].shape  
 
-        if implement_main:  
-            total_batches_main +=1
+        if implement_full:  
+            total_batches_full +=1
 
             optimizer_sp.zero_grad()
                 
@@ -469,17 +469,17 @@ def TrainModelSP(train_inputs, train_outputs, epoch_number, total_iterations,  i
             optimizer_sp_1.step()
 
         # Loss lists
-        if implement_lora and implement_main : 
+        if implement_lora and implement_full : 
             lora_list.append(loss_in_batch_1)
-            main_list.append(loss_in_batch) 
+            full_list.append(loss_in_batch) 
 
-        elif implement_lora and not implement_main:
+        elif implement_lora and not implement_full:
             lora_list.append(loss_in_batch_1)
-            main_list.append(0)
+            full_list.append(0)
 
-        elif implement_main and not implement_lora:
+        elif implement_full and not implement_lora:
             lora_list.append(0)
-            main_list.append(loss_in_batch)
+            full_list.append(loss_in_batch)
              
         #  Conditions
 
@@ -512,34 +512,44 @@ def TrainModelSP(train_inputs, train_outputs, epoch_number, total_iterations,  i
 
         else:
             flag_loss = False
+            
             flag_weight = False
         
         if t_test:
+            
             count+=1
+            
             implement_lora = True
 
             if loss_in_batch_1 != 0:
                 loss_stat_full.append(loss_in_batch)
+            
                 loss_stat_lora.append(loss_in_batch_1)
 
             if(count % 365 == 0):
 
                 result = t_test_check(loss_stat_full , loss_stat_lora)
+            
                 if result:
+            
                     implement_lora = True
                     for_once = True
-                    implement_main = False
+                    implement_full = False
                     count = 0
                     flag_loss = False
 
                     t_test = False
 
                     print("t-test satisfied: Implementing Hybrid Model")
+            
                     end_time = time.time()
                     stop_flag = True
+            
                 else:
-                    implement_main = True
+                    implement_full = True
+            
                     implement_lora = True
+            
                     for_once = True
 
                     count = 0
@@ -550,17 +560,17 @@ def TrainModelSP(train_inputs, train_outputs, epoch_number, total_iterations,  i
                     print("t-test not satisfied")
                     t_test = True
 
-    if total_batches_main != 0:
+    if total_batches_full != 0:
 
-        lossMain = total_loss / total_batches_main
-        print("Main Training Loss:", lossMain)
+        lossMain = total_loss / total_batches_full
+        print("Full Training Loss:", lossMain)
 
     else:
 
         lossLora = net_loss / total_batches_lora
         print("LoRA training Loss: ", lossLora)
 
-    return lossMain, lossLora, total_iterations,  check_conditions_flag, implement_main, implement_lora,for_once, peft_model, loss_all,optimizer_sp_1, t_test,end_time, stop_flag
+    return lossMain, lossLora, total_iterations,  check_conditions_flag, implement_full, implement_lora,for_once, peft_model, loss_all,optimizer_sp_1, t_test,end_time, stop_flag
  
 # flag
 
@@ -571,18 +581,18 @@ t_test = False
 check_conditions_flag = True
 
 implement_lora= False
-implement_main = True
+implement_full = True
 
 # Initialization
 total_iterations=0
 loss_all = []
 
-loss_main=[]
+loss_full=[]
 loss_lora=[]
 
 previous_params = None
 
-main_list = []
+full_list = []
 lora_list = []
 
 previous_average = [None, None]
@@ -596,6 +606,7 @@ current_k = None
 current_v = None
 
 # Hybrid Parameters
+
 target1=[]
 save1 = []
 
@@ -628,7 +639,7 @@ status = True
 
 index = 0
 
-main_loss = []
+full_loss = []
 lora_loss = []
 while status:
 
@@ -639,8 +650,9 @@ while status:
        
     train_input_batches_sp, train_output_batches_sp = zip(*temp_holder_sp)
 
-    main1,lora1, total_iterations , check_conditions_flag, implement_main, implement_lora, for_once, peft_model , loss_all, optimizer_sp_1, t_test, end_time, stop_flag= TrainModelSP(train_input_batches_sp, train_output_batches_sp,epoch_number , total_iterations,
-                            implement_main, implement_lora  , check_conditions_flag , t_test, swe_model_sp_1 , for_once,peft_model, loss_all ,optimizer_sp_1 , previous_params  , previous_average, previous_weight_1)
+    full1,lora1, total_iterations , check_conditions_flag, implement_full, implement_lora, for_once, peft_model , loss_all, optimizer_sp_1, t_test, end_time, stop_flag= TrainModelSP(train_input_batches_sp, train_output_batches_sp,epoch_number , total_iterations,
+                            implement_full, implement_lora  , check_conditions_flag , t_test, swe_model_sp_1 , for_once,peft_model, loss_all ,optimizer_sp_1 , previous_params  , previous_average, previous_weight_1)
+
     scheduler_sp.step()
 
     index = index + 1
@@ -648,7 +660,7 @@ while status:
     if index > 23:
         status = False
 
-    main_loss.append(main1)
+    full_loss.append(full1)
 
     status_loss = False
     status_validation = False
@@ -660,7 +672,7 @@ print("Time Elapsed", end_time - start_time)
 time1 = end_time - start_time
 loss_df1 = pd.DataFrame()
 
-loss_df1['Train Loss'] =pd.Series(main_loss)
+loss_df1['Train Loss'] =pd.Series(full_loss)
 loss_df1['Lora Loss'] =pd.Series(lora_loss)
 
 peft_model.eval()
