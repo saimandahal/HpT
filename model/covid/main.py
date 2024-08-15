@@ -37,7 +37,7 @@ import torch.optim as optim
 
 import dataLoader as dataLoader
 
-import modelC as modelC
+import model as modelC
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -67,10 +67,7 @@ feature_vectors_test = dataLoader.create_feature_vector_test(counties_sample, da
 
 
 
-
-print(len(feature_vectors_test))
 # Model
-
 covid_model = modelC.CovidModel(input_dim=1, model_dim=512, num_heads=8, num_layers=6, dropout=0.001).to(device)
 
 # Loss and Optimizer
@@ -79,19 +76,16 @@ optimizer = optim.Adam(covid_model.parameters(), lr=0.00001)
 
 
 
-
-with open("covid_model.txt", "w") as file:
-    file.write(str(covid_model))
-
-
-
-
+# Initial convergence test
 def check_conditions_loss(previous_average, average_loss, total_iterations  , flag_loss):
 
     if previous_average[0] is not None and previous_average[1] is not None:
+    
         calc1= (previous_average[0] - previous_average[1])
         calc2 = (previous_average[1] - average_loss)
+    
         condition1 = ( calc1 / previous_average[0]) < 0.1
+    
         condition2 = ( calc2/ previous_average[1]) < 0.1
 
         if condition1 and condition2 and (calc2 < calc1):
@@ -104,9 +98,13 @@ def check_conditions_loss(previous_average, average_loss, total_iterations  , fl
 
 
 def check_conditions_weight(previous_weight_1, total_iterations , previous_params ,flag_weight):
+    
     current_q = None
+    
     current_k = None
+    
     current_v = None
+    
     distance_qkv = 0
 
     all_q = []
@@ -146,6 +144,8 @@ def check_conditions_weight(previous_weight_1, total_iterations , previous_param
     
 
     return flag_weight , previous_params , previous_weight_1
+
+# T-test
 
 def t_test_check(loss_stat_full, loss_stat_lora):
     t_statistic, p_value = stats.ttest_ind(loss_stat_full, loss_stat_lora)
@@ -211,7 +211,6 @@ save1.append("decoder_layer_1")
 save1.append("decoder_layer_2")
 save1.append("decoder_layer_3")
 
-# 
 save1.append("dim_red_1")
 save1.append("dim_red_2")
 
@@ -238,7 +237,7 @@ covid_model.train()
 
 start = time.time()
 
-num_epochs = 16
+num_epochs = 20
 
 
 total_loss = 0
@@ -360,18 +359,16 @@ for epoch in range(num_epochs):
             main_list.append(loss_in_batch)
 
 
-        # if index % 2000 == 0:
-        #     print(f'Loss: {epoch_loss /index}')
-
-
-                #  Conditions
-
         if check_conditions_flag:
+
             average_loss+= loss_in_batch
+
             if total_batches % check_iterations_loss == 0:
                 # print("Checking Conditions:")
+
                 average_loss /= check_iterations_loss
                 flag_loss,previous_average = check_conditions_loss(previous_average, average_loss, total_iterations , flag_loss )
+
                 average_loss = 0
 
             if total_batches % check_iterations_weight == 0:
@@ -379,27 +376,36 @@ for epoch in range(num_epochs):
                 flag_weight,previous_params,previous_weight_1= check_conditions_weight(previous_weight_1,total_iterations, previous_params,flag_weight )
 
         if flag_loss and flag_weight:
+
             print(f"Satisfied condition 1 at iteration {total_iterations}")
+
             check_conditions_flag = False
+
             flag_loss = False
+
             t_test = True
 
         else:
+
             flag_loss = False
             flag_weight = False
         
         if t_test:
+
             count+=1
             implement_lora = True
 
             if loss_in_batch_1 != 0:
+
                 loss_stat_full.append(loss_in_batch)
                 loss_stat_lora.append(loss_in_batch_1)
 
             if(count % 720 == 0):
 
                 result = t_test_check(loss_stat_full , loss_stat_lora)
+
                 if result:
+
                     implement_lora = True
                     for_once = True
                     implement_main = False
@@ -437,16 +443,13 @@ for epoch in range(num_epochs):
         lossLora = net_loss / total_batches_lora
         print("LoRA training Loss: ", lossLora)
 
-    # avg_loss = epoch_loss / len(feature_vectors_train)
-
-    # print(f'Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss}')
 
 end = time.time()
 
 t_time = end_time_t - start
 print(f'Training completed in {end - start:.2f} seconds.')
 
-print("t-test", t_time)
+# Testing
 
 peft_model.eval()
 
