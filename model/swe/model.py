@@ -658,6 +658,7 @@ while status:
     index = index + 1
 
     if index > 23:
+
         status = False
 
     full_loss.append(full1)
@@ -668,12 +669,16 @@ while status:
     lora_loss.append(lora1)
 
 end_time = time.time()
+
 print("Time Elapsed", end_time - start_time)
-time1 = end_time - start_time
+
 loss_df1 = pd.DataFrame()
 
 loss_df1['Train Loss'] =pd.Series(full_loss)
 loss_df1['Lora Loss'] =pd.Series(lora_loss)
+
+
+# Testing
 
 peft_model.eval()
 
@@ -713,7 +718,9 @@ test_outputs_3_sp, test_outputs_actual_3_sp, test_losses_3_sp = TestModelSP(sp_t
 test_outputs_4_sp, test_outputs_actual_4_sp, test_losses_4_sp = TestModelSP(sp_testing_input_4,sp_testing_output_4)
 test_outputs_5_sp, test_outputs_actual_5_sp, test_losses_5_sp = TestModelSP(sp_testing_input_5,sp_testing_output_5)
 
+
 def getDFForOutputs(predicted_output,actual_outputs , loss_T):
+
     actual_outputs_df = pd.DataFrame()
     predicted_outputs_df = pd.DataFrame()
 
@@ -732,31 +739,11 @@ test_3_actual_df = getDFForOutputs(test_outputs_3_sp,test_outputs_actual_3_sp , 
 test_4_actual_df = getDFForOutputs(test_outputs_4_sp,test_outputs_actual_4_sp , test_losses_4_sp)
 test_5_actual_df = getDFForOutputs(test_outputs_5_sp,test_outputs_actual_5_sp , test_losses_5_sp)
 
+# Saving results in csv 
+
 test_1_actual_df.to_csv('/results/2014_test_results.csv')
 test_2_actual_df.to_csv('/results/2006_test_results.csv')
 test_3_actual_df.to_csv('/results/2017_test_results.csv')
 test_4_actual_df.to_csv('/results/2016_test_results.csv')
 test_5_actual_df.to_csv('/results/2007_test_results.csv')
 
-
-def merge_csv_files(csv_paths):
-    dfs = []
-    
-    for path in csv_paths:
-        df = pd.read_csv(path)
-        dfs.append(df)
-    
-    merged_df = pd.concat(dfs, ignore_index=True)
-    
-    return merged_df
-
-csv_paths = [
-    '/results/2006_test_results.csv',
-    '/results/2007_test_results.csv',
-    '/results/2014_test_results.csv',
-    '/results/2016_test_results.csv',
-    '/results/2017_test_results.csv',
-    ]
-
-merged_df = merge_csv_files(csv_paths)
-merged_df.to_csv('/results/test_combined.csv')
