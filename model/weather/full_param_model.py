@@ -21,6 +21,7 @@ import time
 
 import DL as DL
 
+# Device
 if torch.cuda.is_available(): 
     dev = "cuda:0" 
 else: 
@@ -31,6 +32,7 @@ device = torch.device(dev)
 # File import
 folder_path = '/data/'
 
+# Dataloader
 
 files = os.listdir(folder_path)
 csv_files = [file for file in files if file.endswith('.csv')]
@@ -41,9 +43,14 @@ weather_dataLoader = DL.WeatherLoader(csv_path)
 
 weather_dataLoader.cleanData()
 
+# Testing data
 w_testing_input,w_testing_output=weather_dataLoader.getTestingData()
 
+# Training Data
 w_training_input , w_training_output = weather_dataLoader.getTrainingData()
+
+
+# Positional Encoding
 
 class PositionalEncoding(nn.Module):
 
@@ -74,11 +81,17 @@ class PositionalEncoding(nn.Module):
 
 class TransformerLayer(nn.Module):
    def __init__(self, model_dim, n_heads):
+
         super(TransformerLayer, self).__init__()
+
         self.multihead_attn = MultiHeadAttention(model_dim, n_heads)
+
         self.feed_forward = FeedForward(model_dim, model_dim * 4)
+
         self.layer_norm1 = nn.LayerNorm(model_dim)
+
         self.layer_norm2 = nn.LayerNorm(model_dim)
+
         self.dropout = nn.Dropout(0.1)
    def forward(self, x):
         # Multi-head attention
