@@ -10,6 +10,8 @@ import math
 
 
 class SpatialDataLoader:
+
+    # Data preprocessing 
     
     def normalizeCols(self,data, cols):
         temp_df = data.copy(deep = True)
@@ -169,9 +171,6 @@ class SpatialDataLoader:
         
         train_inputs = self.model_inputs[filtered_dates_indices[train_yr_indices]]
         train_outputs = self.model_outputs[filtered_dates_indices[train_yr_indices]]
-        # indices = np.random.permutation(len(train_inputs))
-        # train_inputs_shuffled = train_inputs[indices]
-        # train_outputs_shuffled = train_outputs[indices]
         
         train_input_batches = self.generateBatches(train_inputs, 1)
         train_output_batches = self.generateBatches(train_outputs, 1)
