@@ -94,8 +94,10 @@ class TransformerLayer(nn.Module):
 
         self.dropout = nn.Dropout(0.1)
    def forward(self, x):
+        
         # Multi-head attention
         residual = x
+        
         x = self.layer_norm1(x + self.dropout(self.multihead_attn(x, x, x)))
 
         # Feed-forward
@@ -105,30 +107,41 @@ class TransformerLayer(nn.Module):
 
 class FeedForward(nn.Module):
     def __init__(self, model_dim, ff_dim):
+        
         super(FeedForward, self).__init__()
+        
         self.fc1 = nn.Linear(model_dim, ff_dim)
+        
         self.fc2 = nn.Linear(ff_dim, model_dim)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
+        
         x = self.fc2(x)
+        
         return x
 
 class MultiHeadAttention(nn.Module):
     def __init__(self, model_dim, n_heads):
+        
         super(MultiHeadAttention, self).__init__()
+        
         self.model_dim = model_dim
         self.n_heads = n_heads
         self.head_dim = model_dim // n_heads
+        
         assert self.head_dim * n_heads == model_dim, "Model"
+        
         self.q_linear = nn.Linear(model_dim, model_dim)
         self.v_linear = nn.Linear(model_dim, model_dim)
         self.k_linear = nn.Linear(model_dim, model_dim)
         self.out = nn.Linear(model_dim, model_dim)
 
     def forward(self, query, key, value):
+        
         batch_size = query.size(0)
         # Linear projections
+        
         query = self.q_linear(query)
         key = self.k_linear(key)
         value = self.v_linear(value)
@@ -137,7 +150,7 @@ class MultiHeadAttention(nn.Module):
         key = key.view(batch_size, -1, self.n_heads, self.head_dim).permute(0, 2, 1, 3)
         value = value.view(batch_size, -1, self.n_heads, self.head_dim).permute(0, 2, 1, 3)
 
-        # Attention calculatino
+        # Attention calculation
         scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(self.head_dim)
         scores = F.softmax(scores, dim=-1)
 
@@ -282,12 +295,11 @@ class WeatherTrans(nn.Module):
         return x
 
     
-
+# Model
 weather_model = WeatherTrans(encoder_input_dim = 13, model_dim = 512, n_output_heads = 1, seq_length = 29)
 
 weather_model = weather_model.to(device = device)
 
- 
 mean_squared_error_weather = nn.MSELoss()
 
 # Optimizer
@@ -359,14 +371,13 @@ while status:
 
     index = index + 1
 
-    if index > 19:
+    if index > 21:
         status = False
 
 end_time = time.time()
 print("Time Elapsed", end_time - start_time)
 
-time1 = end_time - start_time
-
+# Testing
 weather_model.eval()
 
 def TestModelWeather(test_inputs, test_outputs):
@@ -400,6 +411,7 @@ def TestModelWeather(test_inputs, test_outputs):
 
 test_outputs_1_w, test_outputs_actual_1_w, test_losses_1_w = TestModelWeather(w_testing_input,w_testing_output)
 
+# DataFrame preparation
 def getDFForOutputs(predicted_output, actual_outputs, csv_paths):
     actual_outputs_df = pd.DataFrame()
     predicted_outputs_df = pd.DataFrame()
@@ -419,4 +431,5 @@ def getDFForOutputs(predicted_output, actual_outputs, csv_paths):
 
 
 test_1_actual_df = getDFForOutputs(test_outputs_1_w,test_outputs_actual_1_w, csv_path)
+# CSV file
 test_1_actual_df.to_csv('/results/test_Layers.csv')
