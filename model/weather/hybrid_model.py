@@ -229,8 +229,6 @@ class WeatherTrans(nn.Module):
         
         # Applying the transformer layer.
 
-        # x = self.transformers_1(x)
-
         for layer in self.transformer_layers:
             x = layer(x)
         
@@ -273,7 +271,7 @@ class WeatherTrans(nn.Module):
         return x
 
     
-
+# Model
 weather_model = WeatherTrans(encoder_input_dim = 13, model_dim = 512, n_output_heads = 1, seq_length = 29)
 weather_model_1 = WeatherTrans(encoder_input_dim = 13, model_dim = 512, n_output_heads = 1, seq_length = 29)
 
@@ -291,12 +289,17 @@ optimizer_weather_1 = torch.optim.AdamW(weather_model_1.parameters(), lr= 0.0001
 scheduler_weather_1 = torch.optim.lr_scheduler.StepLR(optimizer_weather_1, step_size = 3 ,gamma = 0.6, last_epoch= -1, verbose=False)
 
 
-# Implementation Main
 
+
+# Implementation Main
+# Initial convergence test
+
+# Loss check
 def check_conditions_loss(previous_average, average_loss, total_iterations  , flag_loss):
-    # print("Chekcing loss and weight")
     # Loss
+    
     if previous_average[0] is not None and previous_average[1] is not None:
+        
         calc1= (previous_average[0] - previous_average[1])
         calc2 = (previous_average[1] - average_loss)
         condition1 = ( calc1 / previous_average[0]) < 0.1
@@ -309,11 +312,11 @@ def check_conditions_loss(previous_average, average_loss, total_iterations  , fl
     # Update losses
     previous_average[0] = previous_average[1]
     previous_average[1] = average_loss
-    # average_loss = 0
 
     return flag_loss,previous_average
 
 
+# Weight check
 def check_conditions_weight(previous_weight_1, total_iterations , previous_params ,flag_weight):
     current_q = None
     current_k = None
@@ -324,30 +327,25 @@ def check_conditions_weight(previous_weight_1, total_iterations , previous_param
     all_k = []
     all_v = []
 
-    # for i in range(12):
     q_name = f'transformer_layers.11.multihead_attn.q_linear.weight'
 
-    # k_name = f'transformer_layers.11.multihead_attn.k_linear.weight'
     v_name = f'transformer_layers.11.multihead_attn.v_linear.weight'
 
         # Iterate through parameters
     for name, param in weather_model.named_parameters():
+
         if name == q_name:
             all_q = torch.clone(param.data)
-        # if name == k_name:
-        #     all_k.append(torch.clone(param.data))
+
         if name == v_name:
             all_v = torch.clone(param.data)
 
     merged_qkv_weight = torch.cat((all_q, all_v), dim=1)
 
-    # if (current_k is not None) and (current_v is not None) and (current_q is not None):
     current_params = merged_qkv_weight
 
     if previous_params is not None:
         distance_qkv = torch.norm(current_params - previous_params , p='fro')
-        # distance_qkv.item()
-        print(distance_qkv.item())
 
         if previous_weight_1[0] is not None and previous_weight_1[1] is not None:
             condition1 = previous_weight_1[0] - previous_weight_1[1]
@@ -360,12 +358,13 @@ def check_conditions_weight(previous_weight_1, total_iterations , previous_param
         # Update weights
         previous_weight_1[0] = previous_weight_1[1]
         previous_weight_1[1] = distance_qkv.item()
-        # average_weight = 0
+
     previous_params = current_params
     
 
     return flag_weight , previous_params , previous_weight_1
 
+# T-test
 def t_test_check(loss_stat_full, loss_stat_lora):
     t_statistic, p_value = stats.ttest_ind(loss_stat_full, loss_stat_lora)
     alpha = 0.01
@@ -382,6 +381,7 @@ def t_test_check(loss_stat_full, loss_stat_lora):
         return False
 
 
+# Training
 def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iterations,  implement_main, implement_lora 
                   , check_conditions_flag , t_test, weather_model_1 , for_once , peft_model , loss_all , optimizer_weather_1 , previous_params,previous_average,previous_weight_1 ):
 
@@ -403,6 +403,7 @@ def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iteration
     x= len(train_inputs)
 
     check_iterations_loss= 8000
+
     check_iterations_weight= 8000
 
     loss_stat_full = []
@@ -414,7 +415,6 @@ def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iteration
     stop_flag = False
     end_time = time.time()
 
-
     for input_index , batch_input in enumerate(train_inputs):
                 
         total_batches+=1
@@ -422,6 +422,7 @@ def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iteration
 
         batch_size , sequence_length , feature_dim = train_outputs[input_index].shape  
 
+        # Full-parameter model
         if implement_main:  
             total_batches_main +=1
 
@@ -440,7 +441,9 @@ def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iteration
             optimizer_weather.step()
 
             loss_all.append(loss_in_batch)
+
         
+        # Lower-parameter model
         if implement_lora:
             total_batches_lora +=1
 
@@ -470,10 +473,12 @@ def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iteration
             main_list.append(loss_in_batch) 
 
         elif implement_lora and not implement_main:
+
             lora_list.append(loss_in_batch_1)
             main_list.append(0)
 
         elif implement_main and not implement_lora:
+
             lora_list.append(0)
             main_list.append(loss_in_batch)
              
@@ -481,10 +486,15 @@ def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iteration
 
         if check_conditions_flag:
             average_loss+= loss_in_batch
+
             if total_batches % check_iterations_loss == 0:
+
                 print("Checking Conditions:")
+
                 average_loss /= check_iterations_loss
+
                 flag_loss,previous_average = check_conditions_loss(previous_average, average_loss, total_iterations , flag_loss )
+
                 average_loss = 0
 
             if total_batches % check_iterations_weight == 0:
@@ -492,6 +502,7 @@ def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iteration
                 flag_weight,previous_params,previous_weight_1= check_conditions_weight(previous_weight_1,total_iterations, previous_params,flag_weight )
 
         if flag_loss and flag_weight:
+
             print(f"Satisfied condition 1 at iteration {total_iterations}")
             check_conditions_flag = False
             flag_loss = False
@@ -512,7 +523,9 @@ def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iteration
             if(count % 8000 == 0):
 
                 result = t_test_check(loss_stat_full , loss_stat_lora)
+
                 if result:
+
                     implement_lora = True
                     for_once = True
                     implement_main = False
@@ -527,6 +540,7 @@ def TrainModelWeather(train_inputs, train_outputs, epoch_number, total_iteration
                     stop_flag = True
 
                 else:
+
                     implement_main = True
                     implement_lora = True
                     for_once = True
@@ -586,6 +600,7 @@ current_k = None
 current_v = None
 
 # Hybrid Parameters
+
 target1=[]
 save1 = []
 
@@ -620,6 +635,7 @@ index = 0
 
 main_loss = []
 lora_loss = []
+
 while status:
 
     temp_holder_weather = list(zip(w_training_input, w_training_output))
@@ -635,7 +651,7 @@ while status:
 
     index = index + 1
 
-    if index > 19:
+    if index > 21:
         status = False
 
     main_loss.append(main1)
@@ -646,9 +662,10 @@ while status:
     lora_loss.append(lora1)
 
 end_time = time.time()
+
 print("Time Elapsed", end_time - start_time)
 
-time1 = end_time - start_time
+# Testing
 
 peft_model.eval()
 
@@ -683,6 +700,7 @@ def TestModelWeather(test_inputs, test_outputs):
 
 test_outputs_1_w, test_outputs_actual_1_w, test_losses_1_w = TestModelWeather(weather_testing_input,weather_testing_output)
 
+
 def getDFForOutputs(predicted_output, actual_outputs, csv_paths):
     actual_outputs_df = pd.DataFrame()
     predicted_outputs_df = pd.DataFrame()
@@ -702,4 +720,5 @@ def getDFForOutputs(predicted_output, actual_outputs, csv_paths):
 
 
 test_1_actual_df = getDFForOutputs(test_outputs_1_w,test_outputs_actual_1_w, csv_path)
+
 test_1_actual_df.to_csv('/results/test_Layers.csv')
