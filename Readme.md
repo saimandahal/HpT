@@ -1,8 +1,7 @@
 # HpT: Hybrid Acceleration of Spatio-Temporal Attention Model Training on Heterogeneous Manycore Architecture
 
-A hardware- software-based codesign that implements lightweight training for self-attention mechanisms on various spatiotemporal datasets and
-accelerates it using heterogeneous architecture. Our parameter-efficient training approach incorporates intrinsic dimensionality
-to reduce the trainable parameters, achieving efficiency in training without significant loss in accuracy. 
+HpT, a new hybrid approach to accelerate the training of attention-based models for scientific applications. Our approach is hybrid at two different
+layers: at the software layer, our approach dynamically switches from a full-parameter training mode to a lower-parameter training mode by incorporating intrinsic dimensionality; and at the hardware layer, our approach harnesses the combined power of GPUs, resistive random-access memory (ReRAM)-based PIM devices, and systolic arrays. This software-hardware co-design approach is aimed at adaptively reducing both runtime and energy costs during the training phase, without compromising on quality. 
 
 ## Citation
 Paper under review
