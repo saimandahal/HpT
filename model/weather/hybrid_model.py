@@ -107,19 +107,26 @@ class FeedForward(nn.Module):
 
 class MultiHeadAttention(nn.Module):
     def __init__(self, model_dim, n_heads):
+        
         super(MultiHeadAttention, self).__init__()
+        
         self.model_dim = model_dim
         self.n_heads = n_heads
         self.head_dim = model_dim // n_heads
+        
+        
         assert self.head_dim * n_heads == model_dim, "Model"
+        
         self.q_linear = nn.Linear(model_dim, model_dim)
         self.v_linear = nn.Linear(model_dim, model_dim)
         self.k_linear = nn.Linear(model_dim, model_dim)
         self.out = nn.Linear(model_dim, model_dim)
 
     def forward(self, query, key, value):
+        
         batch_size = query.size(0)
         # Linear projections
+        
         query = self.q_linear(query)
         key = self.k_linear(key)
         value = self.v_linear(value)
@@ -128,7 +135,8 @@ class MultiHeadAttention(nn.Module):
         key = key.view(batch_size, -1, self.n_heads, self.head_dim).permute(0, 2, 1, 3)
         value = value.view(batch_size, -1, self.n_heads, self.head_dim).permute(0, 2, 1, 3)
 
-        # Attention calculatino
+        # Attention calculation
+        
         scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(self.head_dim)
         scores = F.softmax(scores, dim=-1)
 
