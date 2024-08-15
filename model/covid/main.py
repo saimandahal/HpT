@@ -35,7 +35,7 @@ import torch.nn.functional as F
 
 import torch.optim as optim
 
-import covidDataloader as covidDataloader
+import dataLoader as dataLoader
 
 import modelC as modelC
 
@@ -53,14 +53,7 @@ data_test = data[data['Date'] >= 209]
 
 counties = list(pd.unique(data['GISJOIN']))
 
-# num_counties_to_select = int(np.floor(len(counties) * 0.1))
-
-# counties_sample = counties[:num_counties_to_select]
-
-# # counties_sample = counties[::int(1 / 0.1)]
-
-
-counties_sample = random.sample(counties, int(np.floor(len(counties) * 0.016)))
+counties_sample = random.sample(counties, int(np.floor(len(counties) * 0.1)))
 
 data_train = data[data['Date'] < 209]
 
@@ -68,10 +61,9 @@ variables = ['deaths','confirmed_cases','foot_traffic','Race1','Race2','Race3','
 
 
 
-# variables = ['deaths']
-feature_vectors_train = covidDataloader.create_feature_vector_train(counties_sample, data_train, 3, variables)
+feature_vectors_train = dataLoader.create_feature_vector_train(counties_sample, data_train, 3, variables)
 
-feature_vectors_test = covidDataloader.create_feature_vector_test(counties_sample, data_test, 3, variables)
+feature_vectors_test = dataLoader.create_feature_vector_test(counties_sample, data_test, 3, variables)
 
 
 
