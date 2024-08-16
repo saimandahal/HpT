@@ -38,7 +38,8 @@ device = torch.device(dev)
 
 
 # csv file
-file_path = './data/winds.dat'  
+file_path = '../../data/wind/winds.dat'  
+
 
 dataset = pd.read_csv(file_path, delimiter=',')
 
