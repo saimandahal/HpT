@@ -19,5 +19,5 @@ Dahal, S., Dhingra, P., Thapa, KK., Pande, P. & Kalyanaraman, A. HpT: Hybrid Acc
 
 ### Dataset source
 SWE model: 
-COVID model:
-Wind model:
+COVID model: https://github.com/behnamnkp/Deep-MTS-LSTM
+Wind model: https://github.com/amirstar/Deep-Forecast
