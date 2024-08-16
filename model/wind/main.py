@@ -527,4 +527,4 @@ test_results['actual'] =pd.Series(actual_values)
 test_results['predicted'] =pd.Series(predicted_values)
 
 
-test_results.to_csv('/local/data/sdahal_p/wind/result/resultHy1.csv' , index = False)
+test_results.to_csv('/result.csv' , index = False)
