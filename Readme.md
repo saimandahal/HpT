@@ -17,7 +17,9 @@ Submitted for review
 Dahal, S., Dhingra, P., Thapa, KK., Pande, P. & Kalyanaraman, A. HpT: Hybrid Acceleration of Spatio-Temporal Attention Model Training on Heterogeneous Manycore Architecture (2024)
 
 
-### Dataset source
-SWE model: 
+## Dataset source
+SWE model: https://github.com/Krishuthapa/SWE-Attention
+
 COVID model: https://github.com/behnamnkp/Deep-MTS-LSTM
+
 Wind model: https://github.com/amirstar/Deep-Forecast
