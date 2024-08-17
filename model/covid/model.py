@@ -8,8 +8,8 @@ import torch.nn.functional as F
 
 import math
 
-# GPU
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 
 class PositionalEncoding(nn.Module):
@@ -71,6 +71,7 @@ class MultiHeadAttention(nn.Module):
 
         scores = F.softmax(scores, dim=-1)
 
+
         output = torch.matmul(scores, value)
         output = output.permute(0, 2, 1, 3).contiguous().view(batch_size, -1, self.model_dim)
 
@@ -123,8 +124,9 @@ class CovidModel(nn.Module):
         super(CovidModel, self).__init__()
 
         initial_dim = model_dim
+
         
-        self.input_embedding_1 = nn.Linear(input_dim, 256)
+        self.input_embedding_1 = nn.Linear(input_dim , 256)
         
         self.input_embedding_2 = nn.Linear(256, model_dim)
         
@@ -138,31 +140,28 @@ class CovidModel(nn.Module):
         self.dropout_1 = torch.nn.Dropout(p = 0.1)
 
 
-        self.dim_red_1 = torch.nn.Linear(initial_dim * 2 , int(initial_dim))
+        self.dim_red_1 = torch.nn.Linear(int(initial_dim * 2) , int(initial_dim/2))
         
-        self.dim_red_2 = torch.nn.Linear(int(initial_dim) , int(initial_dim))
+        self.dim_red_2 = torch.nn.Linear(int(initial_dim/2) , int(initial_dim/8))
         # 
-        self.decoder_layer_1 = torch.nn.Linear(model_dim * 3 , model_dim )    
+        self.decoder_layer_1 = torch.nn.Linear(int(model_dim/8) * 50 , model_dim )    
 
-        self.decoder_layer_2 = torch.nn.Linear(model_dim   , int(model_dim/2))
+        self.decoder_layer_2 = torch.nn.Linear(int(model_dim )  , int(model_dim/2))
 
-        self.decoder_layer_3 = torch.nn.Linear( int(model_dim/2),  int(model_dim/4))
 
-        self.decoder_layer_4 = torch.nn.Linear( int(model_dim/4),  1)
+        self.decoder_layer_3 = torch.nn.Linear( int(model_dim/2),  50)
 
 
 
     def forward(self, src):
-
-        src = src.permute(0, 1, 2)
-
-        src = src.reshape(-1,1)
 
         x = self.input_embedding_1(src)
 
         x = self.input_embedding_2(x)
 
         src = self.positional_encoding(x)
+
+
 
         for layer in self.transformer_layers:
             x = layer(x)
@@ -185,7 +184,8 @@ class CovidModel(nn.Module):
         
         x= self.dropout_1(x)
 
-        x = x.reshape(-1, 3 * int(512))
+        x = x.reshape(-1, 50 * int(64))
+
         
         x= self.decoder_layer_1(x)
 
@@ -196,6 +196,7 @@ class CovidModel(nn.Module):
         x= self.activation_relu(x)
 
         x = self.decoder_layer_3(x)
+
 
         return x
     
