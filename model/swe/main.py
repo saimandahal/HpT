@@ -30,7 +30,7 @@ else:
 device = torch.device(dev)
 
 # Prediction location
-snotel_locations_info = pd.read_csv('Data/Snotel_Locations_Filtered_v3.csv')
+snotel_locations_info = pd.read_csv('../../data/swe/Snotel_Locations_Filtered_v3.csv')
 snotel_locations_info['Southness'] = [ math.sin(value['Slope_tif1_x']) * math.cos(value['Aspect_tif_x']) for index,value in snotel_locations_info.iterrows()]
 
 # Dataloader
@@ -741,9 +741,9 @@ test_5_actual_df = getDFForOutputs(test_outputs_5_sp,test_outputs_actual_5_sp , 
 
 # Saving results in csv 
 
-test_1_actual_df.to_csv('/results/2014_test_results.csv')
-test_2_actual_df.to_csv('/results/2006_test_results.csv')
-test_3_actual_df.to_csv('/results/2017_test_results.csv')
-test_4_actual_df.to_csv('/results/2016_test_results.csv')
-test_5_actual_df.to_csv('/results/2007_test_results.csv')
+test_1_actual_df.to_csv('2014_test_results.csv')
+test_2_actual_df.to_csv('2006_test_results.csv')
+test_3_actual_df.to_csv('2017_test_results.csv')
+test_4_actual_df.to_csv('2016_test_results.csv')
+test_5_actual_df.to_csv('2007_test_results.csv')
 
