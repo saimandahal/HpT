@@ -13,6 +13,7 @@ import numpy as np
 class covid_train(Dataset):
 
     def __init__(self, csv_file, window_size=50):
+
         self.data = pd.read_csv(csv_file)
 
         self.data = self.data[['GISJOIN','confirmed_cases','foot_traffic','Date','deaths','POPDEN','Metro','Micro','POP2','POP3','POP1','POP4','Race1','Race2','MHHI','MNR','MGR','MHV','MHI','QTPOP_percentage','OCCU1']]
@@ -52,8 +53,6 @@ class covid_train(Dataset):
             
             target = self.data[(self.data['GISJOIN'] == loc) & (self.data['Date'] == time)].iloc[:, self.data.columns.get_loc('deaths')].values
 
-            # target = self.data[(self.data['GISJOIN'] == loc) & (self.data['Date'] == time)].iloc[:, 2].values
-            
             if features.size == 0:
                 features = [0] * (len(self.data.columns) - 2) 
                 target = 0
