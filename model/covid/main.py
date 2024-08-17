@@ -37,14 +37,15 @@ import torch.optim as optim
 
 import dataLoader as dataLoader
 
-import model as modelTransformer
+import model as modelC
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 
 # Data Preparation
-data = pd.read_csv('./data/covid.csv')
+data = pd.read_csv('../../data/covid/covid.csv')
+
 
 
 dataset_train = dataLoader.covid_train('../../data/covid/covid.csv')
@@ -55,8 +56,10 @@ dataloader_train = DataLoader(dataset_train, batch_size=1, shuffle=True)
 
 dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=False)
 
+
+
 # Model
-covid_model = modelTransformer.CovidModel(input_dim=19, model_dim=512, num_heads=8, num_layers=6, dropout=0.001).to(device)
+covid_model = modelC.CovidModel(input_dim=19, model_dim=512, num_heads=8, num_layers=12, dropout=0.001).to(device)
 
 # Loss and Optimizer
 criterion = nn.MSELoss()
@@ -208,9 +211,6 @@ config = LoraConfig(target_modules= target1,  modules_to_save= save1, r = 8 , lo
 covid_model_1 = copy.deepcopy(covid_model)
 peft_model = get_peft_model(covid_model_1, config)
 
-peft_model.print_trainable_parameters()
-
-
 
 status = True
 
@@ -276,7 +276,7 @@ for epoch in range(num_epochs):
 
     epoch_loss = 0
 
-    for batch in feature_vectors_train:
+    for batch,targets in dataloader_train:
 
         index += 1
 
@@ -284,20 +284,20 @@ for epoch in range(num_epochs):
 
         total_batches += 1
         
-        inputs, targets = batch
+        batch= batch.to(device)
 
-        inputs, targets = inputs.to(device), targets.to(device)
+        targets= targets.to(device)
 
 
-        if implement_main: #
+        if implement_main: 
 
             total_batches_main +=1
 
             optimizer.zero_grad()
 
-            outputs = covid_model(inputs)
+            outputs = covid_model(batch)
 
-            loss = criterion(outputs, targets)
+            loss = criterion(outputs, targets) 
 
             loss.backward()
 
@@ -318,13 +318,13 @@ for epoch in range(num_epochs):
                 covid_model_1 = copy.deepcopy(covid_model)
                 peft_model = get_peft_model(covid_model_1, config)
                 for_once= False
-                optimizer_1 = torch.optim.AdamW(peft_model.parameters(), lr= 0.00001, weight_decay = 0.001)
+                optimizer_1 = torch.optim.AdamW(peft_model.parameters(), lr=0.00001, weight_decay = 0.0001)
 
             optimizer_1.zero_grad(peft_model.parameters())
 
-            outputs_1 = peft_model(inputs)
+            outputs_1 = peft_model(batch)
 
-            loss_1 = criterion(outputs_1, targets)
+            loss_1 = criterion(outputs_1, targets) 
 
             loss_1.backward()
 
@@ -442,21 +442,21 @@ print(f'Training completed in {end - start:.2f} seconds.')
 peft_model.eval()
 
 
-def evaluate_model(model, feature_vectors_test):
+def evaluate_model(model, dataloader_test, location = "G0100010"):
 
     true_values = []
     predicted_values = []
 
     with torch.no_grad():
 
-        for batch in feature_vectors_test:
+        for batch,targets in dataloader_test:
 
-            inputs, targets = batch
+            batch= batch.to(device)
 
-            inputs, targets = inputs.to(device), targets.to(device)
+            optimizer.zero_grad()
 
-            outputs = model(inputs)
-            
+            outputs = model(batch)
+
             true_values.append(targets.cpu().numpy())
 
             predicted_values.append(outputs.cpu().numpy())
@@ -468,7 +468,7 @@ def evaluate_model(model, feature_vectors_test):
 
     return true_values, predicted_values
 
-true_values, predicted_values = evaluate_model(peft_model, feature_vectors_test)
+true_values, predicted_values = evaluate_model(peft_model, dataloader_test , location="G0100010")
 
 
 true_values = true_values.flatten()  
@@ -478,4 +478,4 @@ df1 = pd.DataFrame()
 df1['actual'] = pd.Series(true_values)
 df1['predicted'] = pd.Series(predicted_values)
 
-df1.to_csv('/local/data/sdahal_p/covid/result/resulthybrid.csv' , index = False)
+df1.to_csv('result.csv' , index = False)
