@@ -68,7 +68,7 @@ feature_vectors_test = dataLoader.create_feature_vector_test(counties_sample, da
 
 
 # Model
-covid_model = modelC.CovidModel(input_dim=1, model_dim=512, num_heads=8, num_layers=6, dropout=0.001).to(device)
+covid_model = modelC.CovidModel(input_dim=19, model_dim=512, num_heads=8, num_layers=6, dropout=0.001).to(device)
 
 # Loss and Optimizer
 criterion = nn.MSELoss()

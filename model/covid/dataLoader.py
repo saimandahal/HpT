@@ -40,20 +40,21 @@ class covid_train(Dataset):
 
     # Feature generation
 
-    def __getitem__(self, idx):
 
+  
+    def __getitem__(self, idx):
         time_idx = idx // (len(self.locations) - self.window_size + 1)
         loc_idx = idx % (len(self.locations) - self.window_size + 1)
         
         time = self.time_series[time_idx]
-
         sequence = []
         targets = []
-
         for loc in self.locations[loc_idx:loc_idx + self.window_size]:
             features = self.data[(self.data['GISJOIN'] == loc) & (self.data['Date'] == time)].iloc[:, 2:].values
             
             target = self.data[(self.data['GISJOIN'] == loc) & (self.data['Date'] == time)].iloc[:, self.data.columns.get_loc('deaths')].values
+
+            # target = self.data[(self.data['GISJOIN'] == loc) & (self.data['Date'] == time)].iloc[:, 2].values
             
             if features.size == 0:
                 features = [0] * (len(self.data.columns) - 2) 
@@ -70,6 +71,8 @@ class covid_train(Dataset):
 
         return sequence, targets
 
+
+
 # Test data 
 class covid_test(Dataset):
 
@@ -80,8 +83,7 @@ class covid_test(Dataset):
 
         self.data = self.data[self.data['Date'] > 209]
 
-
-        self.data = self.data[['GISJOIN','Date', 'deaths']]
+        self.data = self.data[['GISJOIN','confirmed_cases','foot_traffic','Date','deaths','POPDEN','Metro','Micro','POP2','POP3','POP1','POP4','Race1','Race2','MHHI','MNR','MGR','MHV','MHI','QTPOP_percentage','OCCU1']]
 
         self.locations = self.data['GISJOIN'].unique()
 
