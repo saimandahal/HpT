@@ -25,7 +25,7 @@ class covid_train(Dataset):
 
         self.window_size = window_size
 
-        selected_locations = np.random.choice(self.locations, int(len(self.locations) * 0.02), replace=True)
+        selected_locations = np.random.choice(self.locations, int(len(self.locations) * 0.1), replace=True)
 
         self.data = self.data[self.data['GISJOIN'].isin(selected_locations)]
 
@@ -39,9 +39,7 @@ class covid_train(Dataset):
 
 
     # Feature generation
-
-
-  
+ 
     def __getitem__(self, idx):
         time_idx = idx // (len(self.locations) - self.window_size + 1)
         loc_idx = idx % (len(self.locations) - self.window_size + 1)

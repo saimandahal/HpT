@@ -37,7 +37,7 @@ import torch.optim as optim
 
 import dataLoader as dataLoader
 
-import model as modelC
+import model as modelTransformer
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -46,29 +46,17 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Data Preparation
 data = pd.read_csv('./data/covid.csv')
 
-data = data[data['Date'] <= 230]
 
-data_test = data[data['Date'] >= 209]
+dataset_train = dataLoader.covid_train('../../data/covid/covid.csv')
 
+dataset_test = dataLoader.covid_test('../../data/covid/covid.csv')
 
-counties = list(pd.unique(data['GISJOIN']))
+dataloader_train = DataLoader(dataset_train, batch_size=1, shuffle=True)
 
-counties_sample = random.sample(counties, int(np.floor(len(counties) * 0.1)))
-
-data_train = data[data['Date'] < 209]
-
-variables = ['deaths','confirmed_cases','foot_traffic','Race1','Race2','Race3','Race4','FHH','HHS1','HHS2','HHS3','SE1','PL','MHHI','MNR','MGR','MHV','HI','MHI']
-
-
-
-feature_vectors_train = dataLoader.create_feature_vector_train(counties_sample, data_train, 3, variables)
-
-feature_vectors_test = dataLoader.create_feature_vector_test(counties_sample, data_test, 3, variables)
-
-
+dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=False)
 
 # Model
-covid_model = modelC.CovidModel(input_dim=19, model_dim=512, num_heads=8, num_layers=6, dropout=0.001).to(device)
+covid_model = modelTransformer.CovidModel(input_dim=19, model_dim=512, num_heads=8, num_layers=6, dropout=0.001).to(device)
 
 # Loss and Optimizer
 criterion = nn.MSELoss()
