@@ -36,5 +36,6 @@ The weather dataset is sourced from the WSU AWN and requires signing in to acces
 1. Clone the HpT repository
   ```bash
    git clone https://github.com/saimandahal/HpT
+
 2. Navigate to specific repository
 3. Run the python script
