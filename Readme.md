@@ -33,15 +33,18 @@ The weather dataset is sourced from the WSU AWN and requires signing in to acces
 - Python packages for Deep Learning
 
 ### Guide
-1. **Clone the HpT repository**
-  ```bash
-  git clone https://github.com/saimandahal/HpT
 
-2. **Navigate to specific repository**
-  ```bash
-  cd model/swe  
+1. **Clone the HpT Repository:**
 
+   ```bash
+   git clone https://github.com/saimandahal/HpT
+   
+2. **Navigate to specific repository:**
 
-3. **Run the python script**
-  ```bash
-  cd model/swe 
+   ```bash
+   cd model/swe
+
+3. **Run the main file:**
+
+   ```bash
+   python main.py
