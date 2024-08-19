@@ -33,7 +33,7 @@ The weather dataset is sourced from the WSU AWN and requires signing in to acces
 - Python packages for Deep Learning
 
 ### Guide
-All the main execution files are located in the model directory, while the data can be found in the data directory.
+All the main execution files for all four models are located in the model directory, while the data can be found in the data directory.
 1. **Clone the HpT Repository:**
 
    ```bash
