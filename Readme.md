@@ -26,3 +26,15 @@ Wind model: https://github.com/amirstar/Deep-Forecast
 
 The weather dataset is sourced from the WSU AWN and requires signing in to access. You can find it here: https://weather.wsu.edu/
 
+## Installation Instructions
+#### Requirements:
+- Python 3 (or higher)
+- Conda
+- Python packages for Deep Learning
+
+### Guide
+1. Clone the HpT repository
+  ```bash
+   git clone https://github.com/saimandahal/HpT
+2. Navigate to specific repository
+3. Run the python script
