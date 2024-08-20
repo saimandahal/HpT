@@ -28,7 +28,7 @@ The weather dataset is sourced from the WSU AWN and requires signing in to acces
 
 ## Installation Instructions
 #### Requirements:
-- Python 3 (or higher)
+- Python 3.8
 - Conda
 - PEFT
 - Python packages for Deep Learning
