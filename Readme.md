@@ -30,6 +30,7 @@ The weather dataset is sourced from the WSU AWN and requires signing in to acces
 #### Requirements:
 - Python 3 (or higher)
 - Conda
+- PEFT
 - Python packages for Deep Learning
 
 ### Guide
