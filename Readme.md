@@ -39,7 +39,7 @@ All the main execution files for all four models are located in the model direct
    ```bash
    git clone https://github.com/saimandahal/HpT
    
-2. **Navigate to specific repository:**
+2. **Navigate to specific directory:**
 
    ```bash
    cd model/swe
