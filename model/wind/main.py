@@ -26,7 +26,7 @@ import time
 
 import model as model
 
-import model.wind.dataLoader as dataLoader
+import dataLoader as dataLoader
 
 if torch.cuda.is_available(): 
     dev = "cuda:0" 
