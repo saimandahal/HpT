@@ -35,7 +35,7 @@ import torch.nn.functional as F
 
 import torch.optim as optim
 
-import model.wind.dataLoader as dataLoader
+import dataLoader as dataLoader
 
 import model as modelC
 
