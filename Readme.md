@@ -9,7 +9,7 @@ layers: at the software layer, our approach dynamically switches from a full-par
    The fullparameter training mode starts on GPUs, and after satisfying the initial convergence and statistical tests, we obtain the pretrained model (Θ) and create a LoRA model (Θ′). Further,the training is done on lower-parameter training mode in heterogeneous manycore architecture, providing a fully-trained model.
 </p>
 
-##Paper
+## Paper
 The associated preprint “HpT: Hybrid Acceleration of Spatio-Temporal Attention Model Training on Heterogeneous Manycore Architectures” is available [here](https://ieeexplore.ieee.org/abstract/document/10820024). 
 ## Citation
 
